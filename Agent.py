@@ -5,8 +5,6 @@ from numpy import dtype, log
 from torch.nn.modules.activation import ReLU
 from torch.nn.modules.linear import Linear
 #from torch._C import long
-#matplotlib.use("Qt5agg")
-matplotlib.use("TkAgg")
 import gym
 import gridworld
 import torch
@@ -14,7 +12,6 @@ from utils import *
 from core import *
 from memory import *
 from torch.utils.tensorboard import SummaryWriter
-#import highway_env
 from matplotlib import pyplot as plt
 import yaml
 from datetime import datetime
@@ -34,7 +31,7 @@ def init_weights(m):
 
 
 
-class RandomAgent(object):
+class Agent(object):
     """The world's simplest agent!"""
 
     def __init__(self, env, opt):
@@ -46,14 +43,11 @@ class RandomAgent(object):
         self.featureExtractor = opt.featExtractor(env)
         self.test=False
         self.nbEvents=0
-        
-        #self.ob_dim=90
-        #self.device=torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
-    
-        self.ob_dim=env.observation_space.shape[0]
+   
+        self.device=torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
         self.device=torch.device('cpu') 
         self.actor=nn.Sequential(
-            nn.Linear(self.ob_dim,64),
+            nn.Linear(env.observation_space.shape[0],64),
             nn.Tanh(),
             nn.Linear(64,64),
             nn.Tanh(),
@@ -67,8 +61,8 @@ class RandomAgent(object):
             nn.Tanh(),
             nn.Linear(64,1)
         )
-        #self.actor.apply(init_weights)
-        #self.critic.apply(init_weights)
+        self.actor.apply(init_weights)
+        self.critic.apply(init_weights)
         self.actor_old=copy.deepcopy(self.actor)
         self.actor.to(self.device)
         self.critic.to(self.device)
@@ -99,23 +93,15 @@ class RandomAgent(object):
         self.actor_count=0
         self.critic_count=0
        
-
-
-
-        
-
-
-
+    
+    
     def act(self, obs):
 
         prob=self.actor(torch.FloatTensor(obs).to(self.device))
         dist=Categorical(prob)
-        try:
-            action=dist.sample()
-        except:
-            print(obs,prob)
-            action=dist.sample()
         
+        action=dist.sample()
+           
         if not self.test:
             self.log_probs.append(dist.log_prob(action))
             self.actions.append(action.detach())
@@ -125,16 +111,7 @@ class RandomAgent(object):
 
         return action.item()
 
-    # sauvegarde du modèle
-    def save(self,outputDir):
-        pass
-
-    # chargement du modèle.
-    def load(self,inputDir):
-        pass
-
-    # apprentissage de l'agent. Dans cette version rien à faire
-
+    
 
     def learn_kl(self):
 
@@ -352,7 +329,6 @@ class RandomAgent(object):
 
         if self.clip==True:
             self.learn_clip()
-
         else:
             self.learn_kl()
         
@@ -402,7 +378,7 @@ if __name__ == '__main__':
     np.random.seed(config["seed"])
     episode_count = config["nbEpisodes"]
 
-    agent = RandomAgent(env,config)
+    agent = Agent(env,config)
 
     rsum = 0
     mean = 0
@@ -414,7 +390,7 @@ if __name__ == '__main__':
         checkConfUpdate(outdir, config)
 
         rsum = 0
-        #agent.nbEvents = 0
+      
         ob = env.reset()
 
         # On souhaite afficher l'environnement (attention à ne pas trop afficher car çà ralentit beaucoup)
@@ -453,15 +429,9 @@ if __name__ == '__main__':
             ob = new_obs
             
             action= agent.act(ob)
-            new_obs, reward, done, _ = env.step(action)
-
-            
-
-            
+            new_obs, reward, done, _ = env.step(action)      
             new_obs = agent.featureExtractor.getFeatures(new_obs)
             agent.store(ob, action, new_obs, reward, done,j)
-            
-            
 
             j+=1
 
@@ -472,13 +442,11 @@ if __name__ == '__main__':
 
             
             rsum += reward
-
-            #if agent.timeToLearn(done):
+           
             if agent.timeToLearn(done):
                 agent.learn()
                 logger.direct_write("actor loss", agent.actor_loss, agent.actor_count)
                 logger.direct_write("critic loss", agent.critic_loss, agent.critic_count)
-
 
             if done:
                 print(str(i) + " rsum=" + str(rsum) + ", " + str(j) + " actions ")
