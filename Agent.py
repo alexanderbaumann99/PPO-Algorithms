@@ -40,7 +40,8 @@ class Agent(object):
         self.nbEvents=0
    
         self.device=torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
-        self.device=torch.device('cpu') 
+     
+        # Define actor network
         self.actor=nn.Sequential(
             nn.Linear(env.observation_space.shape[0],64),
             nn.Tanh(),
@@ -49,6 +50,8 @@ class Agent(object):
             nn.Linear(64,self.action_space.n),
             nn.Softmax(dim=-1)
         )
+        
+        # Define critic network
         self.critic=nn.Sequential(
             nn.Linear(self.ob_dim,64),
             nn.Tanh(),
@@ -56,26 +59,36 @@ class Agent(object):
             nn.Tanh(),
             nn.Linear(64,1)
         )
+        
         self.actor.apply(init_weights)
         self.critic.apply(init_weights)
         self.actor_old=copy.deepcopy(self.actor)
         self.actor.to(self.device)
         self.critic.to(self.device)
-
+        
+        #Define learning rates and optimizers
         self.lr_a=2e-4
         self.lr_c=2e-4
         self.optimizer_actor = torch.optim.Adam(self.actor.parameters(),self.lr_a)
         self.optimizer_critic= torch.optim.Adam(self.critic.parameters(),self.lr_c)
 
+        # Define algorithm variables
         self.clip=opt.clip
-
+        self.ppo=opt.ppo
+        self.dl=opt.dl
+        
+        #Define hyperparameters
         self.K=opt.K_epochs
-        self.beta=1.
-        self.delta=0.01
+        self.discount=0.99          #Discount factor
+        self.gae_lambda=0.95        # Lambda of TD(lambda) advantage estimation
+        
+        #Hyperparameters of clipped PPO
         self.eps_clip=0.2
-        self.discount=0.99
-        self.gae_lambda=0.95
-
+        # Hyperparameters of KL-Div Algo
+        self.beta=1.
+        self.delta=0.01    
+        
+        #Initialize memory
         self.states=[]
         self.actions=[]
         self.log_probs=[]
@@ -83,7 +96,8 @@ class Agent(object):
         self.dones=[]
         self.new_states=[]
         self.values=[]
-
+        
+        #counters
         self.actor_count=0
         self.critic_count=0
        
