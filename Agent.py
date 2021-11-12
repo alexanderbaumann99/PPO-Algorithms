@@ -4,13 +4,10 @@ import matplotlib
 from numpy import dtype, log
 from torch.nn.modules.activation import ReLU
 from torch.nn.modules.linear import Linear
-#from torch._C import long
 import gym
 import gridworld
 import torch
 from utils import *
-from core import *
-from memory import *
 from torch.utils.tensorboard import SummaryWriter
 from matplotlib import pyplot as plt
 import yaml
@@ -22,7 +19,7 @@ from torch.autograd import Variable
 import torch.optim as optim
 
 
-
+#Xavier weight initialization
 def init_weights(m):
 
     if isinstance(m,nn.Linear):
@@ -32,15 +29,13 @@ def init_weights(m):
 
 
 class Agent(object):
-    """The world's simplest agent!"""
-
+  
     def __init__(self, env, opt):
         self.opt=opt
         self.env=env
         if opt.fromFile is not None:
             self.load(opt.fromFile)
         self.action_space = env.action_space
-        self.featureExtractor = opt.featExtractor(env)
         self.test=False
         self.nbEvents=0
    
@@ -72,7 +67,6 @@ class Agent(object):
         self.optimizer_actor = torch.optim.Adam(self.actor.parameters(),self.lr_a)
         self.optimizer_critic= torch.optim.Adam(self.critic.parameters(),self.lr_c)
 
-        #self.optim=torch.optim.Adam(list(self.actor.parameters()) + list(self.critic.parameters()))
         self.clip=opt.clip
 
         self.K=opt.K_epochs
@@ -96,12 +90,14 @@ class Agent(object):
     
     
     def act(self, obs):
-
+        
+        #Calculate distribution of policy
         prob=self.actor(torch.FloatTensor(obs).to(self.device))
         dist=Categorical(prob)
-        
+        #sample action w.r.t policy
         action=dist.sample()
-           
+        
+        #store values
         if not self.test:
             self.log_probs.append(dist.log_prob(action))
             self.actions.append(action.detach())
@@ -112,12 +108,11 @@ class Agent(object):
         return action.item()
 
     
-
+    #learning algorithm of PPO with Adaptive Kullback-Leibler divergence 
     def learn_kl(self):
-
-        
+      
+        #Compute the TD(lambda) advantage estimation
         last_val=self.critic(torch.FloatTensor(self.new_states[-1]).to(self.device)).item()
-
         rewards = np.zeros_like(self.rewards)
         advantage = np.zeros_like(self.rewards)
         adv=0.
@@ -136,11 +131,13 @@ class Agent(object):
                 
         rewards = torch.FloatTensor(rewards).to(self.device)
         advantage = torch.FloatTensor(advantage).to(self.device)
+        #Normalize the advantage
         advantage = (advantage - advantage.mean()) / (advantage.std() + 1e-10)
 
         old_states = torch.squeeze(torch.stack(self.states, dim=0)).detach().to(self.device)
         old_actions = torch.squeeze(torch.stack(self.actions, dim=0)).detach().to(self.device)
         old_logprobs = torch.squeeze(torch.stack(self.log_probs, dim=0)).detach().to(self.device)
+        
         
         pi_old=self.actor(old_states).view((-1,self.action_space.n))
 
@@ -150,16 +147,18 @@ class Agent(object):
         state_value=self.critic(old_states).view(-1) 
         
         for _ in range(self.K):
-
+            
             probs = self.actor(old_states)
             dist=Categorical(probs)
             log_probs=dist.log_prob(old_actions)
-
             ratios=torch.exp(log_probs-old_logprobs.detach())
             
+            #PPO Loss
             loss1=torch.mean(ratios*advantage.detach())
+            #KL-Divergence Loss
             loss2=F.kl_div(input=probs,target=pi_old.detach(),reduction='batchmean')
-
+            
+            #Actor update
             actor_loss=- (loss1-self.beta*loss2)
             self.actor_count+=1
             self.actor_loss=actor_loss
@@ -167,22 +166,22 @@ class Agent(object):
             actor_loss.backward()
             self.optimizer_actor.step()
 
-        
+        #KL-Divergence update
         DL=F.kl_div(input=probs.view((-1,self.action_space.n)),target=pi_old.view((-1,self.action_space.n)),reduction='batchmean')
-
         if DL>=1.5*self.delta:
             self.beta*=2
         if DL<=self.delta/1.5:
             self.beta*=0.5
 
-
+        #Critic update
         loss=F.smooth_l1_loss(rewards,state_value.view(-1))
         self.critic_loss=loss
         self.critic_count+=1
         self.optimizer_critic.zero_grad()
         loss.backward()
         self.optimizer_critic.step()
-
+        
+        #Clear memory
         self.states=[]
         self.actions=[]
         self.log_probs=[]
@@ -190,12 +189,12 @@ class Agent(object):
         self.dones=[]
         self.new_states=[]
         self.values=[]
-        
+       
+    #learning algorithm of PPO
     def learn_ppo(self):
 
-        
+        #Compute the TD(lambda) advantage estimation
         last_val=self.critic(torch.FloatTensor(self.new_states[-1]).to(self.device)).item()
-
         rewards = np.zeros_like(self.rewards)
         advantage = np.zeros_like(self.rewards)
         for t in reversed(range(len(self.rewards))):
@@ -212,6 +211,7 @@ class Agent(object):
                 
         rewards = torch.FloatTensor(rewards).to(self.device)
         advantage = torch.FloatTensor(advantage).to(self.device)
+        #Normalize the advantage
         advantage = (advantage - advantage.mean()) / (advantage.std() + 1e-10)
 
         old_states = torch.squeeze(torch.stack(self.states, dim=0)).detach().to(self.device)
@@ -230,18 +230,20 @@ class Agent(object):
             probs = self.actor(old_states)
             dist=Categorical(probs)
             log_probs=dist.log_prob(old_actions)
-
             ratios=torch.exp(log_probs-old_logprobs.detach())
             
+            #Use only the PPO Loss here
             loss1=torch.mean(ratios*advantage.detach())
-            
             actor_loss=-loss1
+            
+            #Actor update
             self.actor_count+=1
             self.actor_loss=actor_loss
             self.optimizer_actor.zero_grad()
             actor_loss.backward()
             self.optimizer_actor.step()
-
+        
+        #Critic update
         loss=F.smooth_l1_loss(rewards,state_value.view(-1))
         self.critic_loss=loss
         self.critic_count+=1
@@ -249,6 +251,7 @@ class Agent(object):
         loss.backward()
         self.optimizer_critic.step()
 
+        #Clear memory
         self.states=[]
         self.actions=[]
         self.log_probs=[]
@@ -257,12 +260,12 @@ class Agent(object):
         self.new_states=[]
         self.values=[]
         
-
+        
+    #learning algorithm of PPO with clipped objective
     def learn_clip(self):
 
-        
+        #Compute TD(lambda) advantage estimation
         last_val=self.critic(torch.FloatTensor(self.new_states[-1]).to(self.device)).item()
-
         rewards = np.zeros_like(self.rewards)
         advantage = np.zeros_like(self.rewards)
         adv=0.
@@ -276,9 +279,11 @@ class Agent(object):
 
             adv=adv*self.discount*self.gae_lambda*(1-self.dones[t])+delta
             advantage[t]=adv
-                
+          
+        
         rewards = torch.FloatTensor(rewards).to(self.device)
         advantage = torch.FloatTensor(advantage).to(self.device)
+        #Normalize the advantage
         advantage = (advantage - advantage.mean()) / (advantage.std() + 1e-10)
        
         old_states = torch.squeeze(torch.stack(self.states, dim=0)).detach().to(self.device)
@@ -293,20 +298,22 @@ class Agent(object):
             probs = self.actor(old_states)
             dist=Categorical(probs)
             log_probs=dist.log_prob(old_actions)
-
             ratios=torch.exp(log_probs-old_logprobs.detach())
-
-            loss1=ratios*advantage.detach()
-            loss2=torch.clamp(ratios,min=1-self.eps_clip,max=1+self.eps_clip)*advantage.detach()
-            actor_loss= -torch.mean(torch.min(loss1,loss2))
             
+            #PPO-Loss
+            loss1=ratios*advantage.detach()
+            #Clipped Loss
+            loss2=torch.clamp(ratios,min=1-self.eps_clip,max=1+self.eps_clip)*advantage.detach()
+            
+            #Actor update
+            actor_loss= -torch.mean(torch.min(loss1,loss2))         
             self.actor_count+=1
             self.actor_loss=actor_loss
             self.optimizer_actor.zero_grad()
             actor_loss.backward()
             self.optimizer_actor.step()
 
-
+        #Critic update
         loss=F.smooth_l1_loss(rewards,state_values)
         self.critic_loss=loss
         self.critic_count+=1
@@ -314,9 +321,7 @@ class Agent(object):
         loss.backward()
         self.optimizer_critic.step()
 
-  
-
-
+        #Clear memory
         self.states=[]
         self.actions=[]
         self.log_probs=[]
@@ -333,17 +338,11 @@ class Agent(object):
             self.learn_kl()
         
 
-        
-        
-       
-                
 
-    # enregistrement de la transition pour exploitation par learn ulterieure
     def store(self,ob, action, new_obs, reward, done, it):
-        # Si l'agent est en mode de test, on n'enregistre pas la transition
+       
         if not self.test:
 
-            # si on atteint la taille max d'episode en apprentissage, alors done ne devrait pas etre a true (episode pas vraiment fini dans l'environnement)
             if it == self.opt.maxLengthTrain:
                 print("undone")
                 done=False
@@ -351,16 +350,9 @@ class Agent(object):
             self.rewards.append(reward)
             self.dones.append(float(done))
             self.new_states.append(new_obs)
-            
-            #self.lastTransition=tr #ici on n'enregistre que la derniere transition pour traitement immédiat, mais on pourrait enregistrer dans une structure de buffer (c'est l'interet de memory.py)
-            #self.mem.store(tr)
-            
-        
-            
-   
-    # retoune vrai si c'est le moment d'entraîner l'agent.
-    # Dans cette version retourne vrai tous les freqoptim evenements
-    # Mais on pourrait retourner vrai seulement si done pour s'entraîner seulement en fin d'episode
+ 
+
+   #defines the timesteps when the agent learns
     def timeToLearn(self,done):
         if self.test:
             return False
@@ -430,7 +422,6 @@ if __name__ == '__main__':
             
             action= agent.act(ob)
             new_obs, reward, done, _ = env.step(action)      
-            new_obs = agent.featureExtractor.getFeatures(new_obs)
             agent.store(ob, action, new_obs, reward, done,j)
 
             j+=1
