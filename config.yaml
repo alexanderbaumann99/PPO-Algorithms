@@ -1,0 +1,13 @@
+env: CartPole-v1                 # or 'LunarLander-v2'                                # environnement 
+seed: 5
+freqTest: 5000                                                                        # testing frequency
+nbTest: 1                                                                             # number of test episodes
+freqVerbose: 50000                                                                    # verbose frequency
+freqOptim: 500                                                                        # learning frequency
+nbEpisodes: 30000                                                                     # maximal number of episodes
+maxLengthTest: 500                                                                    # maximal length of a test episode
+maxLengthTrain: 500                                                                   # maximal length of a train episode
+K_epochs: 10                                                                          # length of for-loop inside the learning function
+clip: True                                                                            # choice of algorithm
+KL: False                                                                             # choice of algorithm
+PPO: False                                                                            # choice of algorithm
