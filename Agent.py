@@ -79,7 +79,7 @@ class Agent(object):
         
         #Define hyperparameters
         self.K=opt.K_epochs
-        self.discount=0.99          #Discount factor
+        self.discount=0.99          # Discount factor
         self.gae_lambda=0.95        # Lambda of TD(lambda) advantage estimation
         
         #Hyperparameters of clipped PPO
