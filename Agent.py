@@ -385,28 +385,24 @@ if __name__ == '__main__':
       
         ob = env.reset()
 
-        # On souhaite afficher l'environnement (attention à ne pas trop afficher car çà ralentit beaucoup)
+        # Check if verbose
         if i % int(config["freqVerbose"]) == 0:
             verbose = True
         else:
             verbose = False
 
-        # C'est le moment de tester l'agent
+        # Check if it is a testing episode
         if i % freqTest == 0 and i >= freqTest:  ##### Same as train for now
             print("Test time! ")
             mean = 0
             agent.test = True
 
-        # On a fini cette session de test
+       # End of testing, evaluate testing results and go back to train modus
         if i % freqTest == nbTest and i > freqTest:
             print("End of test, mean reward=", mean / nbTest)
             itest += 1
             logger.direct_write("rewardTest", mean / nbTest, itest)
             agent.test = False
-
-        # C'est le moment de sauver le modèle
-        if i % freqSave == 0:
-            agent.save(outdir + "/save_" + str(i))
 
         j = 0
         if verbose:
@@ -426,19 +422,21 @@ if __name__ == '__main__':
 
             j+=1
 
-            # Si on a atteint la longueur max définie dans le fichier de config
+            # If we reached the maximal length per episode
             if ((config["maxLengthTrain"] > 0) and (not agent.test) and (j == config["maxLengthTrain"])) or ( (agent.test) and (config["maxLengthTest"] > 0) and (j == config["maxLengthTest"])):
                 done = True
                 print("forced done!")
 
             
             rsum += reward
-           
+            
+            # If it is time to learn, let the agent learn
             if agent.timeToLearn(done):
                 agent.learn()
                 logger.direct_write("actor loss", agent.actor_loss, agent.actor_count)
                 logger.direct_write("critic loss", agent.critic_loss, agent.critic_count)
-
+                
+            # If episode is done, evaluate the results of this episode and start a new episode
             if done:
                 print(str(i) + " rsum=" + str(rsum) + ", " + str(j) + " actions ")
                 logger.direct_write("reward", rsum, i)
