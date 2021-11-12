@@ -10,5 +10,5 @@ PPO with adaptive Kullback-Leibler Divergence as in ...
 	
 	
 	
-We test these three versions on the CartPole-v1 environment.
+We test these three versions on the 'CartPole-v1' and 'LunarLander-v2' environments.
   
