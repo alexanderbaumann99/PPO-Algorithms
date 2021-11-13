@@ -10,7 +10,7 @@ import torch.nn.functional as F
 #Xavier weight initialization
 def init_weights(m):
     if isinstance(m,nn.Linear):
-        torch.nn.init.xavier_uniform_(m.weight,gain=torch.nn.init.calculate_gain('relu'))
+        torch.nn.init.xavier_uniform_(m.weight,gain=torch.nn.init.calculate_gain('tanh'))
         torch.nn.init.zeros_(m.bias)
         
 
@@ -30,9 +30,9 @@ class Agent(object):
         # Define actor network
         self.actor=nn.Sequential(
             nn.Linear(env.observation_space.shape[0],128),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(128,64),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(64,self.action_space.n),
             nn.Softmax(dim=-1)
         )
@@ -40,11 +40,10 @@ class Agent(object):
         # Define critic network
         self.critic=nn.Sequential(
             nn.Linear(env.observation_space.shape[0],128),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(128,64),
-            nn.ReLU(),
-            nn.Linear(64,1),
-            nn.Tanh()
+            nn.Tanh(),
+            nn.Linear(64,1)
         )
         
         self.actor.apply(init_weights)
