@@ -3,6 +3,7 @@ from utils import *
 from Agent import Agent
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
+import numpy as np
 
 
 
@@ -11,7 +12,6 @@ if __name__ == '__main__':
     env, config, outdir, logger = init('./configs/config_random_cartpole.yaml', "RandomAgent")
     
     freqTest = config["freqTest"]
-    freqSave = config["freqSave"]
     nbTest = config["nbTest"]   
     env.seed(config["seed"])
     np.random.seed(config["seed"])
