@@ -1,6 +1,3 @@
-import argparse
-import sys
-import matplotlib
 from numpy import dtype, log
 from torch.nn.modules.activation import ReLU
 from torch.nn.modules.linear import Linear
