@@ -4,7 +4,7 @@ freqTest: 100                                                                   
 nbTest: 10                                                                            # number of test episodes
 freqVerbose: 50000                                                                    # verbose frequency
 freqOptim: 500                                                                        # learning frequency
-nbEpisodes: 500                                                                       # maximal number of episodes
+nbEpisodes: 511                                                                       # maximal number of episodes
 maxLengthTest: 500                                                                    # maximal length of a test episode
 maxLengthTrain: 500                                                                   # maximal length of a train episode
 K_epochs: 10                                                                          # length of for-loop inside the learning function
