@@ -4,7 +4,7 @@ import numpy as np
 
 
 if __name__ == '__main__':
-    env, config, outdir, logger = init('config.yaml', "Agent")
+    env, config, outdir, logger = init('config.yaml')
     
     freqTest = config["freqTest"]
     nbTest = config["nbTest"]   
