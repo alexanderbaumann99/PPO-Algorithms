@@ -11,7 +11,7 @@ K_epochs: 10                                                                    
 discount: 0.99                                                                        # Discount factor
 gae_lambda: 0.99                                                                      # Lambda of TD(lambda) advantage estimation
 lr_a: 0.0001                                                                          # Learning rate of actor
-lr_c: 0.001                                                                           # Learning rate of critic
+lr_c: 0.0001                                                                           # Learning rate of critic
 clip: True                                                                            # choice of algorithm
 KL: False                                                                             # choice of algorithm
 PPO: False                                                                            # choice of algorithm
