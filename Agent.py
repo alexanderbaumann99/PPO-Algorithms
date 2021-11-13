@@ -9,12 +9,10 @@ import torch.nn.functional as F
 
 #Xavier weight initialization
 def init_weights(m):
-
     if isinstance(m,nn.Linear):
-        torch.nn.init.xavier_uniform_(m.weight,gain=torch.nn.init.calculate_gain('tanh'))
+        torch.nn.init.xavier_uniform_(m.weight,gain=torch.nn.init.calculate_gain('relu'))
         torch.nn.init.zeros_(m.bias)
-
-
+        
 
 class Agent(object):
   
@@ -32,9 +30,9 @@ class Agent(object):
         # Define actor network
         self.actor=nn.Sequential(
             nn.Linear(env.observation_space.shape[0],64),
-            nn.Tanh(),
+            nn.ReLU(),
             nn.Linear(64,64),
-            nn.Tanh(),
+            nn.ReLU(),
             nn.Linear(64,self.action_space.n),
             nn.Softmax(dim=-1)
         )
@@ -42,21 +40,21 @@ class Agent(object):
         # Define critic network
         self.critic=nn.Sequential(
             nn.Linear(env.observation_space.shape[0],64),
-            nn.Tanh(),
+            nn.ReLU(),
             nn.Linear(64,64),
-            nn.Tanh(),
-            nn.Linear(64,1)
+            nn.ReLU(),
+            nn.Linear(64,1),
+            nn.Tanh()
         )
         
         self.actor.apply(init_weights)
         self.critic.apply(init_weights)
-        self.actor_old=copy.deepcopy(self.actor)
         self.actor.to(self.device)
         self.critic.to(self.device)
         
         #Define learning rates and optimizers
-        self.lr_a=2e-4
-        self.lr_c=2e-4
+        self.lr_a=opt.lr_a
+        self.lr_c=opt.lr_c
         self.optimizer_actor = torch.optim.Adam(self.actor.parameters(),self.lr_a)
         self.optimizer_critic= torch.optim.Adam(self.critic.parameters(),self.lr_c)
 
@@ -67,8 +65,8 @@ class Agent(object):
         
         #Define hyperparameters
         self.K=opt.K_epochs
-        self.discount=0.99          # Discount factor
-        self.gae_lambda=0.95        # Lambda of TD(lambda) advantage estimation
+        self.discount=opt.discount            # Discount factor
+        self.gae_lambda=opt.gae_lambda        # Lambda of TD(lambda) advantage estimation
         
         #Hyperparameters of clipped PPO
         self.eps_clip=0.2
