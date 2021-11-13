@@ -346,10 +346,12 @@ class Agent(object):
 
     def learn(self):
 
-        if self.clip==True:
+        if self.clip:
             self.learn_clip()
-        else:
+        elif self.dl:
             self.learn_kl()
+        elif self.ppo:
+            self.learn_ppo()
         
 
 
