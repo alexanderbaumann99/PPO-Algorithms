@@ -4,8 +4,6 @@ from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 
 
-
-
 if __name__ == '__main__':
     env, config, outdir, logger = init('config.yaml', "Agent")
     
@@ -85,7 +83,6 @@ if __name__ == '__main__':
             if done:
                 print(str(i) + " rsum=" + str(rsum) + ", " + str(j) + " actions ")
                 logger.direct_write("reward", rsum, i)
-                #agent.nbEvents = 0
                 mean += rsum
                 rsum = 0
 
