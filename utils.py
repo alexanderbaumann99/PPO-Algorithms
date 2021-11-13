@@ -140,7 +140,7 @@ def logRun(name,config,agent_object):
     return logger,outdir
 
 
-def init(config_file, algoName):
+def init(config_file):
     config = load_yaml(config_file)
     env = gym.make(config["env"])
     if config.get("import") is not None:
@@ -151,6 +151,13 @@ def init(config_file, algoName):
 
     now = datetime.now()
     date_time = now.strftime("%d-%m-%Y-%HH%M-%SS")
+    if config["PPO"]:
+        algoName="PPO"
+    elif config["KL"]:
+        algoName="KL"
+    elif config["clip"]:
+        algoName="Clip"
+     
     outdir = "./XP/" + config["env"] + "/" + algoName + "_" + date_time
 
     print("Saving in " + outdir)
