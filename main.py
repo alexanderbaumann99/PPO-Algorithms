@@ -9,7 +9,7 @@ import numpy as np
 
 
 if __name__ == '__main__':
-    env, config, outdir, logger = init('./configs/config_random_cartpole.yaml', "RandomAgent")
+    env, config, outdir, logger = init('config.yaml', "Agent")
     
     freqTest = config["freqTest"]
     nbTest = config["nbTest"]   
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         if verbose:
             env.render()
 
-        new_obs = agent.featureExtractor.getFeatures(ob)
+        new_obs=ob
         
         while True:
             if verbose:
