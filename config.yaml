@@ -1,7 +1,7 @@
 env: CartPole-v1                 # or 'LunarLander-v2'                                # environnement 
 seed: 5
-freqTest: 5000                                                                        # testing frequency
-nbTest: 1                                                                             # number of test episodes
+freqTest: 100                                                                         # testing frequency
+nbTest: 10                                                                            # number of test episodes
 freqVerbose: 50000                                                                    # verbose frequency
 freqOptim: 500                                                                        # learning frequency
 nbEpisodes: 30000                                                                     # maximal number of episodes
