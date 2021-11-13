@@ -8,6 +8,10 @@ nbEpisodes: 30000                                                               
 maxLengthTest: 500                                                                    # maximal length of a test episode
 maxLengthTrain: 500                                                                   # maximal length of a train episode
 K_epochs: 10                                                                          # length of for-loop inside the learning function
+discount: 0.99                                                                        # Discount factor
+gae_lambda: 0.99                                                                      # Lambda of TD(lambda) advantage estimation
+lr_a: 1e-4                                                                            # Learning rate of actor
+lr_c: 1e-3                                                                            # Learning rate of critic
 clip: True                                                                            # choice of algorithm
 KL: False                                                                             # choice of algorithm
 PPO: False                                                                            # choice of algorithm
