@@ -5,7 +5,6 @@ from numpy import dtype, log
 from torch.nn.modules.activation import ReLU
 from torch.nn.modules.linear import Linear
 import gym
-import gridworld
 import torch
 from utils import *
 from torch.utils.tensorboard import SummaryWriter
@@ -17,6 +16,8 @@ from torch.distributions import Categorical
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.optim as optim
+import numpy as np
+import torch.nn.functional as F
 
 
 #Xavier weight initialization
@@ -53,7 +54,7 @@ class Agent(object):
         
         # Define critic network
         self.critic=nn.Sequential(
-            nn.Linear(self.ob_dim,64),
+            nn.Linear(env.observation_space.shape[0],64),
             nn.Tanh(),
             nn.Linear(64,64),
             nn.Tanh(),
