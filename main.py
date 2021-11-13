@@ -8,6 +8,7 @@ import gym
 import gridworld
 import torch
 from utils import *
+from Agent import Agent
 from torch.utils.tensorboard import SummaryWriter
 from matplotlib import pyplot as plt
 import yaml
