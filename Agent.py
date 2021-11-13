@@ -29,9 +29,9 @@ class Agent(object):
      
         # Define actor network
         self.actor=nn.Sequential(
-            nn.Linear(env.observation_space.shape[0],64),
+            nn.Linear(env.observation_space.shape[0],128),
             nn.ReLU(),
-            nn.Linear(64,64),
+            nn.Linear(128,64),
             nn.ReLU(),
             nn.Linear(64,self.action_space.n),
             nn.Softmax(dim=-1)
@@ -39,9 +39,9 @@ class Agent(object):
         
         # Define critic network
         self.critic=nn.Sequential(
-            nn.Linear(env.observation_space.shape[0],64),
+            nn.Linear(env.observation_space.shape[0],128),
             nn.ReLU(),
-            nn.Linear(64,64),
+            nn.Linear(128,64),
             nn.ReLU(),
             nn.Linear(64,1),
             nn.Tanh()
