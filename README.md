@@ -15,7 +15,7 @@ Train:
 ![alt text](https://github.com/alexbaumi/PPO-Algorithm/blob/main/figures/TrainReward_per_Episode.svg?raw=true)
 ![alt text](https://github.com/alexbaumi/PPO-Algorithm/blob/main/figures/relative_TrainReward.svg?raw=true)
 
-We see that the PPO with adpativ KL-Divergence outperforms the other two algorithms in this example. However, we also see in second plot that this alogrithm takes the longest time.
+We see that the PPO with adpativ KL-Divergence outperforms the other two algorithms in this example. However, we see in the second plot that this alogrithm takes the longest time, but still outperforms relatively.
 
 Test:
 ![alt text](https://github.com/alexbaumi/PPO-Algorithm/blob/main/figures/TestReward.svg?raw=true)
