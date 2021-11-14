@@ -9,7 +9,7 @@
 </ul>
 
 
-We test these three versions on the 'CartPole-v1' environment. <p>We see that the PPO with adpative KL-Divergence outperforms the other two algorithms in this example. However, the second plot shows that this alogrithm takes on the other hand the longest time, but still outperforms on a relative basis.<br/> PPO with adpative KL-Divergence outperforms also while testing.</p>
+We test these three versions on the 'CartPole-v1' environment. <p>We see that the PPO with adpative KL-penalty outperforms the other two algorithms in this example. However, the second plot shows that this alogrithm takes the longest on the other hand , but still outperforms on a relative basis.<br/> PPO with adpative KL-Divergence outperforms also while testing.</p>
 <p> Note that the first two plots are smoothed.</p>
 
 
