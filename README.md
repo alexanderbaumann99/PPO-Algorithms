@@ -3,7 +3,7 @@
 <p>I implemented three versions of the PPO-Algorithm as proposed in John Schulman et al. 'Proximal policy optimization algorithms' (https://arxiv.org/abs/1707.06347). </p>
 
 <ul>
-	<li> PPO without cliiping or penalty <br/>color: red </li>
+	<li> PPO without clipping or penalty <br/>color: red </li>
 	<li> PPO with clipped objective <br/>color: orange </li>
 	<li> PPO with adaptive Kullback-Leibler penalty<br/>color: blue </li>
 </ul>
